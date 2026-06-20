@@ -10,11 +10,10 @@ A microservices-based grade tracking system built with .NET 9 (Clean Architectur
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?logo=kubernetes&logoColor=white)
 ---
 🔗 Live Demo
-> 🚧 Live deployment link coming soon — being deployed to a free-tier cloud host.
 Service	Link
-🌐 Frontend	coming soon
-⚙️ API + Swagger	coming soon
-📈 Grafana Dashboard	coming soon
+| 🌐 Frontend | [grade-monitoring-frontend.onrender.com](https://grade-monitoring-frontend.onrender.com) |
+| ⚙️ API + Swagger | [Swagger Docs](https://grade-monitoring-observability-platform.onrender.com/swagger) |
+| 📈 Grafana Dashboard | _local only — see Quick Start below_ |
 ---
 ✨ Overview
 This project simulates a real-world enterprise platform for tracking student grades and system health, built to demonstrate:
