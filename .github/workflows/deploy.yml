@@ -1,0 +1,24 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build and push Docker images
+        run: |
+          docker build -t grade-monitoring/api:latest ./src/services/OrderService
+          docker build -t grade-monitoring/frontend:latest ./src/frontend
+      - name: Deploy to k8s
+        run: |
+          kubectl apply -f deploy/k8s/namespaces/
+          kubectl apply -f deploy/k8s/configmaps/
+          kubectl apply -f deploy/k8s/secrets/
+          kubectl apply -f deploy/k8s/deployments/
+          kubectl apply -f deploy/k8s/services/
+          kubectl apply -f deploy/k8s/ingress/
+          kubectl apply -f deploy/k8s/hpa/

@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-config
+  namespace: grade-monitoring
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"

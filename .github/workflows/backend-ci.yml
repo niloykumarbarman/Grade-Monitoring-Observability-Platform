@@ -1,0 +1,19 @@
+name: Backend CI
+
+on:
+  push:
+    paths: ['src/services/**']
+  pull_request:
+    paths: ['src/services/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+      - run: dotnet restore src/services/OrderService
+      - run: dotnet build src/services/OrderService --no-restore
+      - run: dotnet test src/services/OrderService --no-build

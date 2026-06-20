@@ -1,0 +1,14 @@
+replicaCount: 3
+image:
+  pullPolicy: IfNotPresent
+ingress:
+  enabled: true
+  hosts:
+    - host: platform.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+resources:
+  limits:
+    cpu: 1000m
+    memory: 1024Mi

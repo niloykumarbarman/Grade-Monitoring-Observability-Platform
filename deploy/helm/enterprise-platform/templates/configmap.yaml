@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "enterprise-platform.fullname" . }}-config
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"
+  API_BASE_URL: "http://{{ include "enterprise-platform.fullname" . }}"
