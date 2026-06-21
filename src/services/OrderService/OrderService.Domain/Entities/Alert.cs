@@ -1,4 +1,4 @@
-using OrderService.Domain.Common;
+using Common.Domain;
 using OrderService.Domain.Enums;
 
 namespace OrderService.Domain.Entities;

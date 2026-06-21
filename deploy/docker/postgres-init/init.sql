@@ -9,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- Dedicated schema
 CREATE SCHEMA IF NOT EXISTS app;
-SET search_path TO app;
+SET search_path TO app, public;
 
 -- ---------------------------------------------------------------------
 -- ENUM TYPES
@@ -21,7 +21,7 @@ CREATE TYPE audit_action   AS ENUM ('create', 'read', 'update', 'delete', 'login
 -- ---------------------------------------------------------------------
 -- ROLES
 -- ---------------------------------------------------------------------
-CREATE TABLE roles (
+CREATE TABLE legacy_roles (
     id            UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     name          VARCHAR(50)  NOT NULL UNIQUE,
     description   VARCHAR(255),
@@ -34,7 +34,7 @@ CREATE TABLE roles (
 -- ---------------------------------------------------------------------
 -- USERS
 -- ---------------------------------------------------------------------
-CREATE TABLE users (
+CREATE TABLE legacy_users (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     email           VARCHAR(255) NOT NULL UNIQUE,
     username        VARCHAR(100) NOT NULL UNIQUE,
@@ -49,27 +49,27 @@ CREATE TABLE users (
     updated_at      TIMESTAMPTZ  NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_users_email      ON users (email);
-CREATE INDEX idx_users_username  ON users (username);
-CREATE INDEX idx_users_is_active ON users (is_active);
+CREATE INDEX idx_users_email      ON legacy_users (email);
+CREATE INDEX idx_users_username  ON legacy_users (username);
+CREATE INDEX idx_users_is_active ON legacy_users (is_active);
 
 -- ---------------------------------------------------------------------
 -- USER ↔ ROLE (many-to-many)
 -- ---------------------------------------------------------------------
-CREATE TABLE user_roles (
-    user_id     UUID NOT NULL REFERENCES users (id) ON DELETE CASCADE,
-    role_id     UUID NOT NULL REFERENCES roles (id) ON DELETE CASCADE,
+CREATE TABLE legacy_user_roles (
+    user_id     UUID NOT NULL REFERENCES legacy_users (id) ON DELETE CASCADE,
+    role_id     UUID NOT NULL REFERENCES legacy_roles (id) ON DELETE CASCADE,
     assigned_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-    assigned_by UUID REFERENCES users (id) ON DELETE SET NULL,
+    assigned_by UUID REFERENCES legacy_users (id) ON DELETE SET NULL,
     PRIMARY KEY (user_id, role_id)
 );
 
-CREATE INDEX idx_user_roles_role ON user_roles (role_id);
+CREATE INDEX idx_user_roles_role ON legacy_user_roles (role_id);
 
 -- ---------------------------------------------------------------------
 -- ALERTS
 -- ---------------------------------------------------------------------
-CREATE TABLE alerts (
+CREATE TABLE legacy_alerts (
     id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     title           VARCHAR(255)   NOT NULL,
     description     TEXT,
@@ -80,24 +80,24 @@ CREATE TABLE alerts (
     fingerprint     VARCHAR(128),                 -- dedup key from Alertmanager
     fired_at        TIMESTAMPTZ    NOT NULL DEFAULT now(),
     acknowledged_at TIMESTAMPTZ,
-    acknowledged_by UUID REFERENCES users (id) ON DELETE SET NULL,
+    acknowledged_by UUID REFERENCES legacy_users (id) ON DELETE SET NULL,
     resolved_at     TIMESTAMPTZ,
     created_at      TIMESTAMPTZ    NOT NULL DEFAULT now(),
     updated_at      TIMESTAMPTZ    NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_alerts_status      ON alerts (status);
-CREATE INDEX idx_alerts_severity    ON alerts (severity);
-CREATE INDEX idx_alerts_fired_at    ON alerts (fired_at DESC);
-CREATE INDEX idx_alerts_fingerprint ON alerts (fingerprint);
-CREATE INDEX idx_alerts_labels_gin  ON alerts USING GIN (labels);
+CREATE INDEX idx_alerts_status      ON legacy_alerts (status);
+CREATE INDEX idx_alerts_severity    ON legacy_alerts (severity);
+CREATE INDEX idx_alerts_fired_at    ON legacy_alerts (fired_at DESC);
+CREATE INDEX idx_alerts_fingerprint ON legacy_alerts (fingerprint);
+CREATE INDEX idx_alerts_labels_gin  ON legacy_alerts USING GIN (labels);
 
 -- ---------------------------------------------------------------------
 -- AUDIT LOGS
 -- ---------------------------------------------------------------------
-CREATE TABLE audit_logs (
+CREATE TABLE legacy_audit_logs (
     id             BIGSERIAL PRIMARY KEY,
-    user_id        UUID REFERENCES users (id) ON DELETE SET NULL,
+    user_id        UUID REFERENCES legacy_users (id) ON DELETE SET NULL,
     action         audit_action NOT NULL,
     entity_type    VARCHAR(100),                  -- e.g. 'alert', 'user'
     entity_id      VARCHAR(100),
@@ -109,11 +109,11 @@ CREATE TABLE audit_logs (
     created_at     TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_audit_user_id    ON audit_logs (user_id);
-CREATE INDEX idx_audit_action     ON audit_logs (action);
-CREATE INDEX idx_audit_entity     ON audit_logs (entity_type, entity_id);
-CREATE INDEX idx_audit_created_at ON audit_logs (created_at DESC);
-CREATE INDEX idx_audit_correlation ON audit_logs (correlation_id);
+CREATE INDEX idx_audit_user_id    ON legacy_audit_logs (user_id);
+CREATE INDEX idx_audit_action     ON legacy_audit_logs (action);
+CREATE INDEX idx_audit_entity     ON legacy_audit_logs (entity_type, entity_id);
+CREATE INDEX idx_audit_created_at ON legacy_audit_logs (created_at DESC);
+CREATE INDEX idx_audit_correlation ON legacy_audit_logs (correlation_id);
 
 -- ---------------------------------------------------------------------
 -- TRIGGER: auto-update updated_at
@@ -126,17 +126,17 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE TRIGGER trg_users_updated   BEFORE UPDATE ON users
+CREATE TRIGGER trg_users_updated   BEFORE UPDATE ON legacy_users
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-CREATE TRIGGER trg_roles_updated   BEFORE UPDATE ON roles
+CREATE TRIGGER trg_roles_updated   BEFORE UPDATE ON legacy_roles
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
-CREATE TRIGGER trg_alerts_updated  BEFORE UPDATE ON alerts
+CREATE TRIGGER trg_alerts_updated  BEFORE UPDATE ON legacy_alerts
     FOR EACH ROW EXECUTE FUNCTION set_updated_at();
 
 -- ---------------------------------------------------------------------
 -- SEED DATA (system roles)
 -- ---------------------------------------------------------------------
-INSERT INTO roles (name, description, permissions, is_system) VALUES
+INSERT INTO legacy_roles (name, description, permissions, is_system) VALUES
     ('SuperAdmin', 'Full system access',
         '["*"]'::jsonb, TRUE),
     ('Admin', 'Manage users, alerts, and config',

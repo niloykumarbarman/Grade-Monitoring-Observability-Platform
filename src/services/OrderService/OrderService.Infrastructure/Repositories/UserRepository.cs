@@ -6,12 +6,12 @@ using OrderService.Infrastructure.Persistence;
 
 namespace OrderService.Infrastructure.Repositories;
 
-public class UserRepository : Repository<ApplicationUser>, IUserRepository
+public class UserRepository : Repository<ApplicationUser, Guid>, IUserRepository
 {
     public UserRepository(ApplicationDbContext db) : base(db) { }
 
-    public async Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken ct = default)
+    public async Task<ApplicationUser?> GetByEmailAsync(string email, CancellationToken cancellationToken = default)
     {
-        return await Db.Users.FirstOrDefaultAsync(u => u.Email == email, ct);
+        return await Db.Users.FirstOrDefaultAsync(u => u.Email == email, cancellationToken);
     }
 }

@@ -1,7 +1,7 @@
 // Identity/CurrentUserService.cs
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
-using OrderService.Application.Common.Interfaces;
+using Common.Interfaces;
 
 namespace OrderService.Infrastructure.Identity;
 

@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Common.Interfaces;
 using OrderService.Application.Common.Interfaces;
 using OrderService.Domain.Entities;
 using OrderService.Infrastructure.Authentication;
@@ -56,10 +57,9 @@ public static class DependencyInjection
         services.AddHttpContextAccessor();
 
         // 5. Register Repositories and Unit of Work
-        services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IAlertRepository, AlertRepository>();
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<OrderService.Application.Common.Interfaces.IUnitOfWork, UnitOfWork>();
 
         // 6. Bind JWT Authentication & Policies Custom Middleware
         services.AddJwtAuthentication(configuration);

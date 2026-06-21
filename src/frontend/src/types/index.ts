@@ -1,3 +1,14 @@
+export interface GradeRecord {
+  id: string
+  studentId: string
+  courseId: string
+  courseName: string
+  score: number
+  grade: string
+  recordedAt: string
+  recordedBy: string
+}
+
 export interface Alert {
   id: string
   title: string

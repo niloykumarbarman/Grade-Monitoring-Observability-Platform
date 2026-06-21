@@ -1,5 +1,4 @@
-// Application/Common/Interfaces/ICurrentUserService.cs
-namespace OrderService.Application.Common.Interfaces;
+namespace Common.Interfaces;
 
 public interface ICurrentUserService
 {

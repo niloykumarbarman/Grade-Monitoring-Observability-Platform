@@ -17,8 +17,8 @@ public class UnitOfWork : IUnitOfWork
         Alerts = alerts;
     }
 
-    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
+    public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        return await _db.SaveChangesAsync(ct);
+        return await _db.SaveChangesAsync(cancellationToken);
     }
 }

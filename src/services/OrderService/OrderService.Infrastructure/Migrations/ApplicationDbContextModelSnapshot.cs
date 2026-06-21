@@ -135,9 +135,6 @@ namespace OrderService.Infrastructure.Migrations
                     b.Property<Guid?>("AcknowledgedBy")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("Description")
                         .HasColumnType("text");
 
@@ -166,9 +163,6 @@ namespace OrderService.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("character varying(255)");
-
-                    b.Property<DateTimeOffset>("UpdatedAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
 

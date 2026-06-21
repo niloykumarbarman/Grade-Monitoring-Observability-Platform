@@ -1,0 +1,86 @@
+version: '3.8'
+services:
+  frontend:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.frontend
+    ports:
+      - "80:80"
+    restart: always
+    depends_on:
+      - api
+
+  api:
+    build:
+      context: ../../
+      dockerfile: deploy/docker/Dockerfile.api
+    ports:
+      - "5000:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=grade_monitoring;Username=postgres;Password=${POSTGRES_PASSWORD}
+      - Observability__OtlpEndpoint=http://otel-collector:4317
+    restart: always
+    depends_on:
+      - postgres
+      - otel-collector
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: grade_monitoring
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ../../deploy/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ../../deploy/monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
+    restart: always
+
+  grafana:
+    image: grafana/grafana:latest
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ../../deploy/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    ports:
+      - "3001:3000"
+    restart: always
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ../../deploy/monitoring/otel-collector/otel-collector-config.yml:/etc/otel-collector-config.yml
+    restart: always
+
+  loki:
+    image: grafana/loki:latest
+    command: ["-config.file=/etc/loki-config.yml"]
+    volumes:
+      - ../../deploy/monitoring/loki/loki-config.yml:/etc/loki-config.yml
+    restart: always
+
+  tempo:
+    image: grafana/tempo:latest
+    command: ["-config.file=/etc/tempo.yml"]
+    volumes:
+      - ../../deploy/monitoring/tempo/tempo-config.yml:/etc/tempo.yml
+    restart: always
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
+    volumes:
+      - ../../deploy/monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    restart: always
+
+volumes:
+  postgres_data:
+  grafana_data:

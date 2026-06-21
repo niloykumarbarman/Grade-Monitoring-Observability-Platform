@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   frontend:
     build:
@@ -12,20 +11,22 @@ services:
 
   api:
     build:
-      context: ./src/services/OrderService
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: src/services/OrderService/Dockerfile
     ports:
       - "5000:8080"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=gradedb;Username=postgres;Password=postgres
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=enterprise_monitoring;Username=postgres;Password=postgres
+      - Observability__OtlpEndpoint=http://otel-collector:4317
     depends_on:
       - postgres
+      - otel-collector
 
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: gradedb
+      POSTGRES_DB: enterprise_monitoring
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -40,6 +41,19 @@ services:
       - "9090:9090"
     volumes:
       - ./deploy/monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./deploy/monitoring/prometheus/alert.rules.yml:/etc/prometheus/alert.rules.yml
+    depends_on:
+      - alertmanager
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    command: ["--config.file=/etc/alertmanager/alertmanager.yml"]
+    volumes:
+      - ./deploy/monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    ports:
+      - "9093:9093"
+    depends_on:
+      - api
 
   grafana:
     image: grafana/grafana:latest
@@ -49,6 +63,41 @@ services:
       - GF_SECURITY_ADMIN_PASSWORD=admin
     volumes:
       - grafana_data:/var/lib/grafana
+      - ./deploy/monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+      - tempo
+      - loki
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otel-collector-config.yml"]
+    volumes:
+      - ./deploy/monitoring/otel-collector/otel-collector-config.yml:/etc/otel-collector-config.yml
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8889:8889"   # Prometheus exporter scrape endpoint
+    depends_on:
+      - tempo
+      - loki
+
+  tempo:
+    image: grafana/tempo:latest
+    command: ["-config.file=/etc/tempo.yml"]
+    volumes:
+      - ./deploy/monitoring/tempo/tempo-config.yml:/etc/tempo.yml
+    ports:
+      - "3200:3200"
+      - "4317"
+
+  loki:
+    image: grafana/loki:latest
+    command: ["-config.file=/etc/loki-config.yml"]
+    volumes:
+      - ./deploy/monitoring/loki/loki-config.yml:/etc/loki-config.yml
+    ports:
+      - "3100:3100"
 
 volumes:
   postgres_data:

@@ -1,6 +1,12 @@
+using Observability.Extensions;
 using OrderService.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
+
+const string ServiceName = "OrderService";
+
+builder.Host.AddObservabilityLogging(builder.Configuration, ServiceName);
+builder.Services.AddObservability(builder.Configuration, ServiceName);
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

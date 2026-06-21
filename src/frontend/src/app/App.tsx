@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import Dashboard from '@/features/dashboard/Dashboard'
 import Alerts from '@/features/alerts/Alerts'
+import Grades from '@/features/grades/Grades'
 import Layout from '@/components/Layout'
 
 const queryClient = new QueryClient()
@@ -13,6 +14,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<Dashboard />} />
+            <Route path="grades" element={<Grades />} />
             <Route path="alerts" element={<Alerts />} />
           </Route>
         </Routes>

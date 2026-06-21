@@ -1,7 +1,7 @@
 // Persistence/Interceptors/AuditableEntityInterceptor.cs
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using OrderService.Domain.Common;
+using Common.Domain;
 
 namespace OrderService.Infrastructure.Persistence.Interceptors;
 

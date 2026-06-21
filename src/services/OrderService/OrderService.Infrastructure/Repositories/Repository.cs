@@ -1,12 +1,12 @@
 // Repositories/Repository.cs
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using OrderService.Application.Common.Interfaces;
+using Common.Interfaces;
 using OrderService.Infrastructure.Persistence;
 
 namespace OrderService.Infrastructure.Repositories;
 
-public class Repository<T> : IRepository<T> where T : class
+public class Repository<T, TId> : IRepository<T, TId> where T : class
 {
     protected readonly ApplicationDbContext Db;
     protected readonly DbSet<T> Set;
@@ -17,24 +17,24 @@ public class Repository<T> : IRepository<T> where T : class
         Set = db.Set<T>();
     }
 
-    public async Task<T?> GetByIdAsync(object id, CancellationToken ct = default)
+    public async Task<T?> GetByIdAsync(TId id, CancellationToken cancellationToken = default)
     {
-        return await Set.FindAsync(new[] { id }, ct);
+        return await Set.FindAsync(new object?[] { id }, cancellationToken);
     }
 
-    public async Task<IReadOnlyList<T>> ListAllAsync(CancellationToken ct = default)
+    public async Task<IReadOnlyList<T>> ListAllAsync(CancellationToken cancellationToken = default)
     {
-        return await Set.AsNoTracking().ToListAsync(ct);
+        return await Set.AsNoTracking().ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken ct = default)
+    public async Task<IReadOnlyList<T>> FindAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
     {
-        return await Set.AsNoTracking().Where(predicate).ToListAsync(ct);
+        return await Set.AsNoTracking().Where(predicate).ToListAsync(cancellationToken);
     }
 
-    public async Task AddAsync(T entity, CancellationToken ct = default)
+    public async Task AddAsync(T entity, CancellationToken cancellationToken = default)
     {
-        await Set.AddAsync(entity, ct);
+        await Set.AddAsync(entity, cancellationToken);
     }
 
     public void Update(T entity) => Set.Update(entity);
