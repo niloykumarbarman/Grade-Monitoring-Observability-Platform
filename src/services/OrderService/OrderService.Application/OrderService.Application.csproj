@@ -3,6 +3,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <NoWarn>NU1903</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MediatR" Version="12.2.0" />

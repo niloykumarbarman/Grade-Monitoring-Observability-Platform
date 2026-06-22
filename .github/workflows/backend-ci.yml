@@ -11,9 +11,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '9.0.x'
-      - run: dotnet restore src/services/OrderService
-      - run: dotnet build src/services/OrderService --no-restore
-      - run: dotnet test src/services/OrderService --no-build
+
+      - name: Restore
+        run: dotnet restore src/services/OrderService/OrderService.sln
+
+      - name: Build
+        run: dotnet build src/services/OrderService/OrderService.sln --no-restore --configuration Release
+
+      - name: Test
+        run: dotnet test src/services/OrderService/OrderService.sln --no-build --configuration Release --verbosity normal

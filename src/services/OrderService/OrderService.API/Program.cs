@@ -1,5 +1,8 @@
+using BuildingBlocks.EventBus.Abstractions;
+using BuildingBlocks.EventBus.RabbitMQ;
 using Observability.Extensions;
 using OrderService.Infrastructure;
+using RabbitMQ.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,6 +15,20 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+
+// RabbitMQ
+builder.Services.AddSingleton<IConnection>(sp =>
+{
+    var factory = new ConnectionFactory
+    {
+        HostName = builder.Configuration["RabbitMQ:HostName"] ?? "localhost",
+        UserName = builder.Configuration["RabbitMQ:UserName"] ?? "guest",
+        Password = builder.Configuration["RabbitMQ:Password"] ?? "guest",
+    };
+    return factory.CreateConnectionAsync().GetAwaiter().GetResult();
+});
+
+builder.Services.AddSingleton<IEventBus, RabbitMQEventBus>();
 
 builder.Services.AddCors(options =>
 {
