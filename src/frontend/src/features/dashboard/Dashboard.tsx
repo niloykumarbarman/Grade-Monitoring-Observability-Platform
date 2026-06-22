@@ -24,23 +24,41 @@ const GRADE_COLORS: Record<string, string> = {
   'C': '#f59e0b', 'D': '#f97316', 'F': '#ef4444'
 }
 
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 p-6 animate-pulse">
+      <div className="h-3 bg-gray-200 rounded w-1/3 mb-4" />
+      <div className="h-8 bg-gray-200 rounded w-1/4" />
+    </div>
+  )
+}
+
+function SkeletonChart() {
+  return (
+    <div className="bg-white rounded-xl border border-gray-100 p-6 animate-pulse">
+      <div className="h-3 bg-gray-200 rounded w-1/3 mb-4" />
+      <div className="h-52 bg-gray-100 rounded" />
+    </div>
+  )
+}
+
 export default function Dashboard() {
   const { data: grades = [], isLoading } = useQuery<GradeRecord[]>({
     queryKey: ['grades', 'STU001'],
     queryFn: () => gradesApi.getByStudent('STU001'),
+    staleTime: 30_000,
+    retry: false,
   })
 
   const avg = grades.length
     ? (grades.reduce((s, g) => s + g.score, 0) / grades.length).toFixed(1)
     : '-'
 
-  // Bar chart — score per course
   const barData = grades.map(g => ({
     name: g.courseName.length > 10 ? g.courseName.slice(0, 10) + '…' : g.courseName,
     score: g.score,
   }))
 
-  // Pie chart — grade distribution
   const gradeCounts: Record<string, number> = {}
   grades.forEach(g => { gradeCounts[g.grade] = (gradeCounts[g.grade] || 0) + 1 })
   const pieData = Object.entries(gradeCounts).map(([grade, count]) => ({ name: grade, value: count }))
@@ -54,33 +72,42 @@ export default function Dashboard() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-        <StatCard
-          label="Total Records"
-          value={isLoading ? '...' : grades.length}
-          icon={<GraduationCap size={18} className="text-blue-600" />}
-          accent="bg-blue-500"
-          textColor="text-blue-600"
-        />
-        <StatCard
-          label="Average Score"
-          value={isLoading ? '...' : avg}
-          icon={<TrendingUp size={18} className="text-emerald-600" />}
-          accent="bg-emerald-500"
-          textColor="text-emerald-600"
-        />
-        <StatCard
-          label="Courses"
-          value={isLoading ? '...' : new Set(grades.map(g => g.courseId)).size}
-          icon={<BookOpen size={18} className="text-purple-600" />}
-          accent="bg-purple-500"
-          textColor="text-purple-600"
-        />
+        {isLoading ? (
+          <><SkeletonCard /><SkeletonCard /><SkeletonCard /></>
+        ) : (
+          <>
+            <StatCard
+              label="Total Records"
+              value={grades.length}
+              icon={<GraduationCap size={18} className="text-blue-600" />}
+              accent="bg-blue-500"
+              textColor="text-blue-600"
+            />
+            <StatCard
+              label="Average Score"
+              value={avg}
+              icon={<TrendingUp size={18} className="text-emerald-600" />}
+              accent="bg-emerald-500"
+              textColor="text-emerald-600"
+            />
+            <StatCard
+              label="Courses"
+              value={new Set(grades.map(g => g.courseId)).size}
+              icon={<BookOpen size={18} className="text-purple-600" />}
+              accent="bg-purple-500"
+              textColor="text-purple-600"
+            />
+          </>
+        )}
       </div>
 
       {/* Charts */}
-      {!isLoading && grades.length > 0 && (
+      {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-          {/* Bar Chart */}
+          <SkeletonChart /><SkeletonChart />
+        </div>
+      ) : grades.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="font-semibold text-gray-700 mb-4">Score by Course</h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -94,7 +121,6 @@ export default function Dashboard() {
             </ResponsiveContainer>
           </div>
 
-          {/* Pie Chart */}
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="font-semibold text-gray-700 mb-4">Grade Distribution</h3>
             <ResponsiveContainer width="100%" height={220}>
@@ -109,6 +135,11 @@ export default function Dashboard() {
               </PieChart>
             </ResponsiveContainer>
           </div>
+        </div>
+      ) : (
+        <div className="bg-white rounded-xl border border-gray-100 p-12 text-center text-gray-400">
+          <GraduationCap size={40} className="mx-auto mb-3 opacity-30" />
+          <p className="text-sm">No grade records found.</p>
         </div>
       )}
     </div>
