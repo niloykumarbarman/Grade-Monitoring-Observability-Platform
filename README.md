@@ -236,7 +236,7 @@ sequenceDiagram
 3. `GradeService.API` subscribes on startup: `eventBus.Subscribe<OrderConfirmedIntegrationEvent, OrderConfirmedEventHandler>();`
 4. `OrderConfirmedEventHandler` consumes the event, performs a create-or-update on the grade record, and persists via `SaveChangesAsync()`.
 
-> **Implementation status:** The event contract, publisher, subscriber, and full create-or-update persistence logic are implemented and build cleanly end-to-end. The remaining step is a live `docker-compose up` run to verify the round-trip against a running RabbitMQ instance — tracked in the [Roadmap](#-roadmap).
+> **Implementation status:** The event contract, publisher, subscriber, and full create-or-update persistence logic are implemented and build cleanly end-to-end. Both services' test suites are verified passing (OrderService 5/5, GradeService 15/15). The remaining step is a live `docker-compose up` run to verify the round-trip against a running RabbitMQ instance — tracked in the [Roadmap](#-roadmap).
 
 ---
 
@@ -302,6 +302,7 @@ cd src/frontend && npm run build
 | `OrderService.sln` build | ✅ 0 errors (4 warnings — AutoMapper advisory, package-level only) |
 | `GradeService.sln` build | ✅ 0 errors, 0 warnings |
 | OrderService test suite | ✅ 5/5 passing (Unit, Integration, Functional) |
+| GradeService test suite | ✅ 15/15 passing (Unit, Integration, Functional) |
 | Frontend ESLint (`--max-warnings 0`) | ✅ Passing |
 | Frontend `tsc` + Vite build | ✅ Passing |
 
@@ -337,7 +338,7 @@ GitHub Actions workflows under `.github/workflows/`:
 - [x] Wire `OrderService` to publish `OrderConfirmedIntegrationEvent` on order confirmation
 - [x] Persist actual grade updates in `GradeService` (create-or-update via `IGradeRepository`)
 - [ ] Run a full `docker-compose up` pass to verify the RabbitMQ publish → consume flow end-to-end at runtime
-- [ ] Run the GradeService test suite (`dotnet test GradeService.sln`)
+- [x] Run the GradeService test suite (`dotnet test GradeService.sln`)
 - [ ] Add an API Gateway (YARP/Ocelot) as a single entry point for the frontend
 - [ ] Add JWT-based authentication service
 - [ ] Populate Grafana dashboards with live metrics via a local `docker-compose up` run
