@@ -1,23 +1,71 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api
+  name: order-service-api
   namespace: grade-monitoring
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: api
+      app: order-service-api
   template:
     metadata:
       labels:
-        app: api
+        app: order-service-api
     spec:
       containers:
         - name: api
-          image: grade-monitoring/api:latest
+          image: ghcr.io/niloykumarbarman/grade-monitoring-api:latest
           ports:
-            - containerPort: 80
+            - containerPort: 8080
           envFrom:
             - configMapRef:
                 name: api-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grade-service
+  namespace: grade-monitoring
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: grade-service
+  template:
+    metadata:
+      labels:
+        app: grade-service
+    spec:
+      containers:
+        - name: grade-service
+          image: ghcr.io/niloykumarbarman/grade-monitoring-grade-service:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: api-config
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 10

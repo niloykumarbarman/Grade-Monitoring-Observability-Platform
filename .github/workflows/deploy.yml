@@ -1,13 +1,14 @@
 name: Deploy
-
 on:
   push:
     branches: [main]
-
+    paths:
+      - 'src/services/**'
+      - 'src/frontend/**'
+      - 'deploy/**'
 env:
   REGISTRY: ghcr.io
   IMAGE_PREFIX: ${{ github.repository_owner }}/grade-monitoring
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
@@ -24,19 +25,34 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push API image
+      - name: Build and push OrderService image
         uses: docker/build-push-action@v5
         with:
-          context: ./src/services/OrderService
+          context: .
+          file: ./src/services/OrderService/Dockerfile
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:${{ github.sha }},${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:latest
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:latest
+
+      - name: Build and push GradeService image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./src/services/GradeService/Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-grade-service:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-grade-service:latest
 
       - name: Build and push Frontend image
         uses: docker/build-push-action@v5
         with:
           context: ./src/frontend
           push: true
-          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:${{ github.sha }},${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:latest
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-frontend:latest
 
   deploy:
     needs: build-and-push
@@ -63,6 +79,12 @@ jobs:
           kubectl apply -f deploy/k8s/ingress/
           kubectl apply -f deploy/k8s/hpa/
 
+      - name: Update images with latest SHA
+        run: |
+          kubectl set image deployment/order-service-api api=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-api:${{ github.sha }} -n grade-monitoring
+          kubectl set image deployment/grade-service grade-service=${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-grade-service:${{ github.sha }} -n grade-monitoring
+
       - name: Verify rollout
         run: |
           kubectl rollout status deployment/order-service-api -n grade-monitoring --timeout=120s
+          kubectl rollout status deployment/grade-service -n grade-monitoring --timeout=120s

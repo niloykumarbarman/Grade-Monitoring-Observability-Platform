@@ -19,9 +19,53 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ConnectionStrings__DefaultConnection=Host=postgres;Database=enterprise_monitoring;Username=postgres;Password=postgres
       - Observability__OtlpEndpoint=http://otel-collector:4317
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
     depends_on:
-      - postgres
-      - otel-collector
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+
+  grade-service:
+    build:
+      context: .
+      dockerfile: src/services/GradeService/Dockerfile
+    ports:
+      - "5001:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__GradeDb=Data Source=/data/grades.db
+      - RabbitMQ__HostName=rabbitmq
+      - RabbitMQ__UserName=guest
+      - RabbitMQ__Password=guest
+      - Observability__OtlpEndpoint=http://otel-collector:4317
+    volumes:
+      - grade_data:/data
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
 
   postgres:
     image: postgres:16-alpine
@@ -75,9 +119,9 @@ services:
     volumes:
       - ./deploy/monitoring/otel-collector/otel-collector-config.yml:/etc/otel-collector-config.yml
     ports:
-      - "4317:4317"   # OTLP gRPC
-      - "4318:4318"   # OTLP HTTP
-      - "8889:8889"   # Prometheus exporter scrape endpoint
+      - "4317:4317"
+      - "4318:4318"
+      - "8889:8889"
     depends_on:
       - tempo
       - loki
@@ -102,3 +146,5 @@ services:
 volumes:
   postgres_data:
   grafana_data:
+  rabbitmq_data:
+  grade_data:

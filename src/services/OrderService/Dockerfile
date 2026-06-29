@@ -7,6 +7,7 @@ WORKDIR /src
 
 # Copy csproj files first (for layer caching)
 COPY ["src/services/BuildingBlocks/Common/Common.csproj", "BuildingBlocks/Common/"]
+COPY ["src/services/BuildingBlocks/EventBus/EventBus.csproj", "BuildingBlocks/EventBus/"]
 COPY ["src/services/OrderService/OrderService.API/OrderService.API.csproj", "OrderService/OrderService.API/"]
 COPY ["src/services/OrderService/OrderService.Application/OrderService.Application.csproj", "OrderService/OrderService.Application/"]
 COPY ["src/services/OrderService/OrderService.Domain/OrderService.Domain.csproj", "OrderService/OrderService.Domain/"]
@@ -17,6 +18,7 @@ RUN dotnet restore "OrderService/OrderService.API/OrderService.API.csproj"
 
 # Copy full source
 COPY src/services/BuildingBlocks/Common/ BuildingBlocks/Common/
+COPY src/services/BuildingBlocks/EventBus/ BuildingBlocks/EventBus/
 COPY src/services/BuildingBlocks/Observability/ BuildingBlocks/Observability/
 COPY src/services/OrderService/ OrderService/
 
