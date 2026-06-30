@@ -23,6 +23,14 @@
 
 ---
 
+## 🔗 Live Demo
+
+* **Frontend:** https://grade-monitoring-frontend2.onrender.com
+* **OrderService API:** https://order-service-lz83.onrender.com
+* **GradeService API:** https://grade-service-2ayg.onrender.com
+
+---
+
 ## 📖 Overview
 
 This platform simulates a real-world **academic grade tracking system** split into independent microservices that communicate asynchronously over **RabbitMQ**. It's built to showcase:
@@ -77,7 +85,6 @@ flowchart TB
 ## 🗂 Project Structure
 
 <details>
-<summary><strong>Click to expand full directory tree</strong></summary>
 
 ```
 GradeMonitoringObservabilityPlatform22/
