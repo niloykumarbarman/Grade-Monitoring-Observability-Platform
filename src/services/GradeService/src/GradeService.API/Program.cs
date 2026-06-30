@@ -13,8 +13,8 @@ builder.Services.AddOpenApi();
 
 // Database
 builder.Services.AddDbContext<GradeDbContext>(options =>
-    options.UseSqlite(
-        builder.Configuration.GetConnectionString("GradeDb") ?? "Data Source=grades.db"));
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("GradeDb")));
 
 // Repository
 builder.Services.AddScoped<IGradeRepository, GradeRepository>();
@@ -43,7 +43,7 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<GradeDbContext>();
-    db.Database.EnsureCreated();
+    db.Database.Migrate();
 }
 
 if (app.Environment.IsDevelopment())
