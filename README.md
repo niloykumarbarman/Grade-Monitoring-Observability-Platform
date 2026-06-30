@@ -25,9 +25,15 @@
 
 ## 🔗 Live Demo
 
-* **Frontend:** https://grade-monitoring-frontend2.onrender.com
-* **OrderService API:** https://order-service-lz83.onrender.com
-* **GradeService API:** https://grade-service-2ayg.onrender.com
+| Service | URL | Try it |
+|---|---|---|
+| 🖥️ **Frontend** | [grade-monitoring-frontend2.onrender.com](https://grade-monitoring-frontend2.onrender.com) | Open and explore the dashboard |
+| 📦 **OrderService API** | [order-service-lz83.onrender.com](https://order-service-lz83.onrender.com) | `GET /api/alerts` |
+| 🎓 **GradeService API** | [grade-service-2ayg.onrender.com](https://grade-service-2ayg.onrender.com) | `GET /health` |
+
+> ℹ️ These are backend APIs without a root (`/`) page — visiting the bare URL shows a 404 by design. Use the endpoints above to confirm the services are live.
+>
+> ⏳ Hosted on Render's free tier — instances spin down after inactivity, so the first request may take 30–50 seconds to wake up.
 
 ---
 
