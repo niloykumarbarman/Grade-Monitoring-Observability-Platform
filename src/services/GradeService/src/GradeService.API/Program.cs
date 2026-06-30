@@ -25,8 +25,15 @@ builder.Services.AddSingleton<IConnection>(sp =>
     var factory = new ConnectionFactory
     {
         HostName = builder.Configuration["RabbitMQ:HostName"] ?? "localhost",
+        Port = int.Parse(builder.Configuration["RabbitMQ:Port"] ?? "5672"),
         UserName = builder.Configuration["RabbitMQ:UserName"] ?? "guest",
         Password = builder.Configuration["RabbitMQ:Password"] ?? "guest",
+        VirtualHost = builder.Configuration["RabbitMQ:VirtualHost"] ?? "/",
+        Ssl = new SslOption
+        {
+            Enabled = bool.Parse(builder.Configuration["RabbitMQ:SslEnabled"] ?? "false"),
+            ServerName = builder.Configuration["RabbitMQ:HostName"] ?? "localhost"
+        }
     };
     return factory.CreateConnectionAsync().GetAwaiter().GetResult();
 });
