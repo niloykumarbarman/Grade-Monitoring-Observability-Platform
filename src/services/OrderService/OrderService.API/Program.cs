@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using BuildingBlocks.EventBus.Abstractions;
 using BuildingBlocks.EventBus.RabbitMQ;
 using Observability.Extensions;
@@ -47,5 +48,11 @@ app.UseCors("AllowFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<OrderService.Infrastructure.Persistence.ApplicationDbContext>();
+    dbContext.Database.Migrate();
+}
 
 app.Run();
