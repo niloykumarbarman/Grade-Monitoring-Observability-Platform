@@ -2,7 +2,9 @@ import axios from 'axios'
 import { GradeRecord } from '../types'
 
 const api = axios.create({
-  baseURL: 'http://localhost:5050/api',
+  baseURL: import.meta.env.VITE_GRADE_API_URL
+    ? `${import.meta.env.VITE_GRADE_API_URL}/api`
+    : 'http://localhost:5050/api',
   headers: { 'Content-Type': 'application/json' },
   timeout: 3000,
 })
