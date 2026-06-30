@@ -249,7 +249,7 @@ sequenceDiagram
 3. `GradeService.API` subscribes on startup: `eventBus.Subscribe<OrderConfirmedIntegrationEvent, OrderConfirmedEventHandler>();`
 4. `OrderConfirmedEventHandler` consumes the event, performs a create-or-update on the grade record, and persists via `SaveChangesAsync()`.
 
-> **Implementation status:** The event contract, publisher, subscriber, and full create-or-update persistence logic are implemented and build cleanly end-to-end. Both services' test suites are verified passing (OrderService 5/5, GradeService 15/15). The remaining step is a live `docker-compose up` run to verify the round-trip against a running RabbitMQ instance — tracked in the [Roadmap](#-roadmap).
+> **Implementation status:** ✅ Fully implemented and verified end-to-end. The event contract, publisher, subscriber, and create-or-update persistence logic are live and tested — both services' test suites pass (OrderService 5/5, GradeService 15/15), and the full publish → consume round-trip has been verified against a live RabbitMQ instance (CloudAMQP) on the deployed Render services.
 
 ---
 
@@ -350,7 +350,7 @@ GitHub Actions workflows under `.github/workflows/`:
 
 - [x] Wire `OrderService` to publish `OrderConfirmedIntegrationEvent` on order confirmation
 - [x] Persist actual grade updates in `GradeService` (create-or-update via `IGradeRepository`)
-- [ ] Run a full `docker-compose up` pass to verify the RabbitMQ publish → consume flow end-to-end at runtime
+- [x] Verified the RabbitMQ publish → consume flow end-to-end on the live Render deployment
 - [x] Run the GradeService test suite (`dotnet test GradeService.sln`)
 - [ ] Add an API Gateway (YARP/Ocelot) as a single entry point for the frontend
 - [ ] Add JWT-based authentication service
